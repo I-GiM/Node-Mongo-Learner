@@ -1,34 +1,36 @@
 const express = require('express');
-//require('./config/db');
+require("./config/db");
+const seats = require('./models/users');
 
 const app = express();
-
-const port = 1200;
-
-
 app.use(express.json());
+const port = 2000;
 
-app.get('/test', (req, res, next) => {
-    res.json({
-        msg: 'Ok'
-    });
-});
+app.post('/register', async (req, res, next) => {
+    try {
+        const findUser = await seats.findOne({email: req.body.email});
 
-app.post('/signup', (req, res, next) => {
-    let user = [];
+        if (findUser) {
+            return res.json({msg: 'Email already exists!'})
+        }
 
-    user.push({
-        fullname: req.body.fullname,
-        email: req.body.email,
-        age: req.body.age
-    });
+        const newUser = new seats({
+            fullname: req.body.fullname,
+            email: req.body.email,
+            password: req.body.password
+        });
 
-    res.json({
-        msg: 'Account created successfully!',
-        user: user
-    });
-} );
+        const savedUser = await newUser.save()
+
+        res.json({
+            msg: 'User saved successfully',
+            user: savedUser
+        })
+    } catch(err) {
+        res.json({msg: err});
+    }
+})
 
 app.listen(port, () => {
-    console.log(`Sample app listenig on Port:${port}; I think I have a crush on Tabby`);
+    console.log(`App listening on Port:${port}`)
 })
